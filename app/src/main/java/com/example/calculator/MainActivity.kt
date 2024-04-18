@@ -1,22 +1,29 @@
 package com.example.calculator
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.view.View.OnClickListener
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.calculator.databinding.ActivityMainBinding
+import java.text.DecimalFormat
 
 class MainActivity : AppCompatActivity(), OnClickListener {
     lateinit var binding: ActivityMainBinding
     var numberText:String? = null
-    var number1:Int? = null
-    var number2:Int? = null
+    var number1:Double? = null
+    var number2:Double? = null
     var implName:String? = null
-    var result:Int? = null
+    var result:Double? = null
+    var resultDiv:Int? = null
+    var zero:Boolean = false
+    var dot:Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -32,6 +39,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         binding.eightBtn.setOnClickListener(this)
         binding.nineBtn.setOnClickListener(this)
         binding.zeroBtn.setOnClickListener(this)
+        binding.dotBtn.setOnClickListener(this)
 
         binding.acBtn.setOnClickListener(this)
         binding.deleteBtn.setOnClickListener(this)
@@ -42,10 +50,11 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         binding.equalBtn.setOnClickListener(this)
 
     }
+    @SuppressLint("SetTextI18n")
     override fun onClick(p0: View?) {
 
         val id = p0?.id
-        if (binding.edit.text.toString() == "0"){
+        if (binding.edit.text.toString() == "0" && !zero){
             numberText = ""
         }
         when(id){
@@ -88,19 +97,31 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             R.id.zero_btn -> {
                 numberText += "0"
                 binding.edit.setText(numberText)
+                zero = true
+            }
+            R.id.dot_btn -> {
+                if (numberText.isNullOrEmpty()){
+                    numberText = "0."
+                    binding.edit.setText(numberText)
+                }
+                if (!numberText?.contains(".")!!) {
+                    numberText += "."
+                    binding.edit.setText(numberText)
+                }
+                dot = true
             }
 
 
             R.id.ac_btn -> {
-                if (numberText?.length == 0){
+                if (numberText.isNullOrEmpty()){
                     binding.edit.setText("0")
                 }else{
                     numberText = ""
-                    binding.edit.setText("")
+                    binding.edit.setText("0")
                 }
             }
             R.id.delete_btn -> {
-                if (numberText?.length == 1 || numberText?.length == 0){
+                if (numberText.isNullOrEmpty()){
                     binding.edit.setText("0")
                 }else{
                     numberText = numberText?.dropLast(1)
@@ -108,56 +129,129 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 }
             }
             R.id.deleniye_btn -> {
-                number1 = numberText?.toInt()
-                numberText = ""
-                binding.edit.setText("")
-                implName = "div"
+                if (numberText.isNullOrEmpty()){
+                    binding.edit.setText("0")
+                }else{
+                    number1 = numberText?.toDouble()
+                    numberText = ""
+                    binding.edit.setText("")
+                    implName = "div"
+                }
             }
             R.id.x_btn -> {
-                number1 = numberText?.toInt()
-                numberText = ""
-                binding.edit.setText("")
-                implName = "multi"
+                if (numberText.isNullOrEmpty()){
+                    binding.edit.setText("0")
+                }else{
+                    number1 = numberText?.toDouble()
+                    numberText = ""
+                    binding.edit.setText("")
+                    implName = "multi"
+                }
             }
             R.id.minus_btn -> {
-                number1 = numberText?.toInt()
-                numberText = ""
-                binding.edit.setText("")
-                implName = "minus"
+                if (numberText.isNullOrEmpty()){
+                    binding.edit.setText("0")
+                }else{
+                    number1 = numberText?.toDouble()
+                    numberText = ""
+                    binding.edit.setText("")
+                    implName = "minus"
+                }
             }
             R.id.plus_btn -> {
-                number1 = numberText?.toInt()
-                numberText = ""
-                binding.edit.setText("")
-                implName = "plus"
+                if (numberText.isNullOrEmpty()){
+                    binding.edit.setText("0")
+                }else{
+                    number1 = numberText?.toDouble()
+                    numberText = ""
+                    binding.edit.setText("")
+                    implName = "plus"
+                }
             }
             R.id.equal_btn -> {
-                number2 = numberText?.toInt()
-                numberText = ""
-                binding.edit.setText("")
-                when(implName){
-                    "div" -> {
-                        result = number1?.div(number2!!)
-                        numberText = result.toString()
-                        binding.edit.setText(result!!.toString())
-                    }
-                    "multi" -> {
-                        result = number1?.times(number2!!)
-                        numberText = result.toString()
-                        binding.edit.setText(result!!.toString())
-                    }
-                    "minus" -> {
-                        result = number1?.minus(number2!!)
-                        numberText = result.toString()
-                        binding.edit.setText(result!!.toString())
-                    }
-                    "plus" -> {
-                        result = number1?.plus(number2!!)
-                        numberText = result.toString()
-                        binding.edit.setText(result!!.toString())
-                    }
-                    else -> {
-                        binding.edit.setText(numberText)
+                if (numberText.isNullOrEmpty()){
+                    binding.edit.setText("0")
+                }else{
+                    number2 = numberText?.toDouble()
+                    numberText = ""
+                    binding.edit.setText("")
+                    when(implName){
+                        "div" -> {
+                            result = number1?.div(number2!!)
+                            numberText = result.toString()
+                            val dotindex = numberText!!.indexOf('.')
+                            if (dotindex !=-1 && dotindex +4 < numberText!!.length){
+                                val threesub = numberText!!.substring(dotindex,dotindex+4)
+                                resultDiv = result?.toInt()
+                                numberText = resultDiv.toString()
+                                binding.edit.setText("$numberText$threesub")
+                            }else{
+                                binding.edit.setText(numberText)
+                            }
+                        }
+                        "multi" -> {
+                            if (dot){
+                                result = number1?.times(number2!!)
+                                numberText = result.toString()
+                                val dotindex = numberText!!.indexOf('.')
+                                if (dotindex !=-1 && dotindex +4 < numberText!!.length){
+                                    val threesub = numberText!!.substring(dotindex,dotindex+4)
+                                    resultDiv = result?.toInt()
+                                    numberText = resultDiv.toString()
+                                    binding.edit.setText("$numberText$threesub")
+                                }else{
+                                    binding.edit.setText(numberText)
+                                }
+                                dot = false
+                            }else{
+                                result = number1?.times(number2!!)
+                                resultDiv = result?.toInt()
+                                numberText = resultDiv.toString()
+                                binding.edit.setText(numberText)
+                            }
+                        }
+                        "minus" -> {
+                            if (dot){
+                                result = number1?.minus(number2!!)
+                                numberText = result.toString()
+                                val dotindex = numberText!!.indexOf('.')
+                                if (dotindex !=-1 && dotindex +4 < numberText!!.length){
+                                    val threesub = numberText!!.substring(dotindex,dotindex+4)
+                                    resultDiv = result?.toInt()
+                                    numberText = resultDiv.toString()
+                                    binding.edit.setText("$numberText$threesub")
+                                }else{
+                                    binding.edit.setText(numberText)
+                                }
+                                dot = false
+                            }else{
+                                result = number1?.times(number2!!)
+                                resultDiv = result?.toInt()
+                                numberText = resultDiv.toString()
+                                binding.edit.setText(numberText)
+                            }
+                        }
+                        "plus" -> {
+                            if (dot){
+                                result = number1?.plus(number2!!)
+                                numberText = result.toString()
+                                val dotindex = numberText!!.indexOf('.')
+                                if (dotindex !=-1 && dotindex +4 < numberText!!.length){
+                                    val threesub = numberText!!.substring(dotindex,dotindex+4)
+                                    resultDiv = result?.toInt()
+                                    numberText = resultDiv.toString()
+                                    binding.edit.setText("$numberText$threesub")
+                                }else{
+                                    binding.edit.setText(numberText)
+                                }
+                                dot = false
+                            }else{
+                                result = number1?.times(number2!!)
+                                resultDiv = result?.toInt()
+                                numberText = resultDiv.toString()
+                                binding.edit.setText(numberText)
+                            }
+                        }
                     }
                 }
             }
